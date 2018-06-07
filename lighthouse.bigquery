@@ -1,0 +1,58 @@
+#standardSQL
+SELECT
+  DISTINCT url AS pwa_url,
+  IFNULL(rank,
+    1000000) AS rank,
+  "" AS sw_url,
+  "" AS manifest_url,
+  ROUND(AVG(score)) AS avg_score
+FROM ( (
+    SELECT
+      REGEXP_REPLACE(JSON_EXTRACT(report,
+          "$.url"), "\"", "") AS url,
+      CAST(JSON_EXTRACT(report,
+          "$.reportCategories[0].score") AS FLOAT64) AS score
+    FROM
+      `httparchive.lighthouse.*`
+    WHERE
+      report IS NOT NULL
+      AND JSON_EXTRACT(report,
+        "$.audits.service-worker.score") = 'true'
+      AND JSON_EXTRACT(report,
+        "$.reportCategories[0].name") = '"Progressive Web App"' )
+  UNION ALL (
+    SELECT
+      REGEXP_REPLACE(JSON_EXTRACT(report,
+          "$.url"), "\"", "") AS url,
+      CAST(JSON_EXTRACT(report,
+          "$.reportCategories[1].score") AS FLOAT64) AS score
+    FROM
+      `httparchive.lighthouse.*`
+    WHERE
+      report IS NOT NULL
+      AND JSON_EXTRACT(report,
+        "$.audits.service-worker.score") = 'true'
+      AND JSON_EXTRACT(report,
+        "$.reportCategories[1].name") = '"Progressive Web App"' ))
+LEFT JOIN (
+  SELECT
+    DISTINCT domain,
+    FLOOR(AVG(rank)) AS rank
+  FROM
+    `httparchive.urls.*`
+  WHERE
+    rank IS NOT NULL
+    AND domain IS NOT NULL
+  GROUP BY
+    domain) AS urls
+ON
+  urls.domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+WHERE
+  # Lighthouse "Good" threshold
+  score >= 75
+GROUP BY
+  url,
+  rank
+ORDER BY
+  rank ASC,
+  url

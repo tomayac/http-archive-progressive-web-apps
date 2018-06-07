@@ -1,0 +1,33 @@
+#standardSQL
+SELECT
+  DISTINCT REGEXP_REPLACE(page, "^http:", "https:") AS pwa_url,
+  IFNULL(urls.rank,
+    1000000) AS rank,
+  REGEXP_EXTRACT(body, "navigator\\.serviceWorker\\.register\\s*\\(\\s*[\"']([^\\),\\s\"']+)") AS sw_url,
+  REGEXP_EXTRACT(REGEXP_EXTRACT(body, "(<link[^>]+rel=[\"']?manifest[\"']?[^>]+>)"), "href=[\"']?([^\\s\"'>]+)[\"']?") AS manifest_url,
+  0.0 AS avg_score
+FROM (
+  SELECT
+    page,
+    body
+  FROM
+    `httparchive.response_bodies.*`
+  WHERE
+    REGEXP_EXTRACT(body, "navigator\\.serviceWorker\\.register\\s*\\(\\s*[\"']([^\\),\\s\"']+)") IS NOT NULL
+    AND REGEXP_EXTRACT(REGEXP_EXTRACT(body, "(<link[^>]+rel=[\"']?manifest[\"']?[^>]+>)"), "href=[\"']?([^\\s\"'>]+)[\"']?") IS NOT NULL )
+LEFT JOIN (
+  SELECT
+    DISTINCT domain,
+    FLOOR(AVG(rank)) AS rank
+  FROM
+    `httparchive.urls.*`
+  WHERE
+    rank IS NOT NULL
+    AND domain IS NOT NULL
+  GROUP BY
+    domain) AS urls
+ON
+  urls.domain = REGEXP_REPLACE(REGEXP_REPLACE(page, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+ORDER BY
+  rank ASC,
+  pwa_url

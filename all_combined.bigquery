@@ -1,0 +1,129 @@
+#standardSQL
+SELECT
+  *
+FROM (
+  SELECT
+    DISTINCT url AS pwa_url,
+    IFNULL(rank,
+      1000000) AS rank,
+    "" AS sw_url,
+    "" AS manifest_url,
+    ROUND(AVG(score)) AS avg_score
+  FROM ( (
+      SELECT
+        REGEXP_REPLACE(JSON_EXTRACT(report,
+            "$.url"), "\"", "") AS url,
+        CAST(JSON_EXTRACT(report,
+            "$.reportCategories[0].score") AS FLOAT64) AS score
+      FROM
+        `httparchive.lighthouse.*`
+      WHERE
+        report IS NOT NULL
+        AND JSON_EXTRACT(report,
+          "$.audits.service-worker.score") = 'true'
+        AND JSON_EXTRACT(report,
+          "$.reportCategories[0].name") = '"Progressive Web App"' )
+    UNION ALL (
+      SELECT
+        REGEXP_REPLACE(JSON_EXTRACT(report,
+            "$.url"), "\"", "") AS url,
+        CAST(JSON_EXTRACT(report,
+            "$.reportCategories[1].score") AS FLOAT64) AS score
+      FROM
+        `httparchive.lighthouse.*`
+      WHERE
+        report IS NOT NULL
+        AND JSON_EXTRACT(report,
+          "$.audits.service-worker.score") = 'true'
+        AND JSON_EXTRACT(report,
+          "$.reportCategories[1].name") = '"Progressive Web App"' ))
+  LEFT JOIN (
+    SELECT
+      DISTINCT domain,
+      FLOOR(AVG(rank)) AS rank
+    FROM
+      `httparchive.urls.*`
+    WHERE
+      rank IS NOT NULL
+      AND domain IS NOT NULL
+    GROUP BY
+      domain) AS urls
+  ON
+    urls.domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+  WHERE
+    # Lighthouse "Good" threshold
+    score >= 75
+  GROUP BY
+    url,
+    rank
+  ORDER BY
+    rank ASC,
+    url )
+UNION ALL (
+  SELECT
+    DISTINCT REGEXP_REPLACE(page, "^http:", "https:") AS pwa_url,
+    IFNULL(urls.rank,
+      1000000) AS rank,
+    REGEXP_EXTRACT(body, "navigator\\.serviceWorker\\.register\\s*\\(\\s*[\"']([^\\),\\s\"']+)") AS sw_url,
+    REGEXP_EXTRACT(REGEXP_EXTRACT(body, "(<link[^>]+rel=[\"']?manifest[\"']?[^>]+>)"), "href=[\"']?([^\\s\"'>]+)[\"']?") AS manifest_url,
+    0.0 AS avg_score
+  FROM (
+    SELECT
+      page,
+      body
+    FROM
+      `httparchive.response_bodies.*`
+    WHERE
+      REGEXP_EXTRACT(body, "navigator\\.serviceWorker\\.register\\s*\\(\\s*[\"']([^\\),\\s\"']+)") IS NOT NULL
+      AND REGEXP_EXTRACT(REGEXP_EXTRACT(body, "(<link[^>]+rel=[\"']?manifest[\"']?[^>]+>)"), "href=[\"']?([^\\s\"'>]+)[\"']?") IS NOT NULL )
+  LEFT JOIN (
+    SELECT
+      DISTINCT domain,
+      FLOOR(AVG(rank)) AS rank
+    FROM
+      `httparchive.urls.*`
+    WHERE
+      rank IS NOT NULL
+      AND domain IS NOT NULL
+    GROUP BY
+      domain) AS urls
+  ON
+    urls.domain = REGEXP_REPLACE(REGEXP_REPLACE(page, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+  ORDER BY
+    rank ASC,
+    pwa_url )
+UNION ALL (
+  SELECT
+    DISTINCT REGEXP_REPLACE(url, "^http:", "https:") AS pwa_url,
+    IFNULL(rank,
+      1000000) AS rank,
+    "" AS sw_url,
+    "" AS manifest_url,
+    0.0 AS avg_score
+  FROM (
+    SELECT
+      *
+    FROM
+      `httparchive.pages.*`
+    WHERE
+      JSON_EXTRACT(payload,
+        '$._blinkFeatureFirstUsed.Features.ServiceWorkerControlledPage') IS NOT NULL)
+  LEFT JOIN (
+    SELECT
+      DISTINCT domain,
+      FLOOR(AVG(rank)) AS rank
+    FROM
+      `httparchive.urls.*` AS urls
+    WHERE
+      rank IS NOT NULL
+      AND domain IS NOT NULL
+    GROUP BY
+      domain)
+  ON
+    domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+  ORDER BY
+    rank ASC,
+    pwa_url)
+ORDER BY
+  rank ASC,
+  pwa_url
