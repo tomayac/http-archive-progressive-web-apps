@@ -25,7 +25,29 @@ SELECT
   REGEXP_CONTAINS(sw_code, r"\.onpaymentrequest\s*=|addEventListener\(\s*[\"']paymentrequest[\"']") AS paymentrequest_event,
   REGEXP_CONTAINS(sw_code, r"\.onmessage\s*=|addEventListener\(\s*[\"']message[\"']") AS message_event,
   REGEXP_CONTAINS(sw_code, r"\.onmessageerror\s*=|addEventListener\(\s*[\"']messageerror[\"']") AS messageerror_event,
-  REGEXP_CONTAINS(sw_code, r"(?i)workbox\w*\.") AS uses_workboxjs
+  REGEXP_CONTAINS(sw_code, r"(?i)workbox\w*\.") AS uses_workboxjs,
+  REGEXP_CONTAINS(manifest_code, r"\"dir\"\s*:") AS dir_property,
+  REGEXP_CONTAINS(manifest_code, r"\"lang\"\s*:") AS lang_property,
+  REGEXP_CONTAINS(manifest_code, r"\"name\"\s*:") AS name_property,
+  REGEXP_CONTAINS(manifest_code, r"\"short_name\"\s*:") AS short_name_property,
+  REGEXP_CONTAINS(manifest_code, r"\"description\"\s*:") AS description_property,
+  REGEXP_CONTAINS(manifest_code, r"\"scope\"\s*:") AS scope_property,
+  REGEXP_CONTAINS(manifest_code, r"\"icons\"\s*:") AS icons_property,
+  REGEXP_CONTAINS(manifest_code, r"\"display\"\s*:") AS display_property,
+  REGEXP_CONTAINS(manifest_code, r"\"orientation\"\s*:") AS orientation_property,
+  REGEXP_CONTAINS(manifest_code, r"\"start_url\"\s*:") AS start_url_property,
+  REGEXP_CONTAINS(manifest_code, r"\"serviceworker\"\s*:") AS serviceworker_property,
+  REGEXP_CONTAINS(manifest_code, r"\"theme_color\"\s*:") AS theme_color_property,
+  REGEXP_CONTAINS(manifest_code, r"\"related_applications\"\s*:") AS related_applications_property,
+  REGEXP_CONTAINS(manifest_code, r"\"prefer_related_applications\"\s*:") AS prefer_related_applications_property,
+  REGEXP_CONTAINS(manifest_code, r"\"background_color\"\s*:") AS background_color_property,
+  REGEXP_CONTAINS(manifest_code, r"\"categories\"\s*:") AS categories_property,
+  REGEXP_CONTAINS(manifest_code, r"\"screenshots\"\s*:") AS screenshots_property,
+  REGEXP_CONTAINS(manifest_code, r"\"iarc_rating_id\"\s*:") AS iarc_rating_id_property,
+  REGEXP_CONTAINS(manifest_code, r"\"gcm_sender_id\"\s*:") AS gcm_sender_id_property,
+  REGEXP_CONTAINS(manifest_code, r"\"gcm_user_visible_only\"\s*:") AS gcm_user_visible_only_property,
+  REGEXP_CONTAINS(manifest_code, r"\"share_target\"\s*:") AS share_target_property,
+  REGEXP_CONTAINS(manifest_code, r"\"supports_share\"\s*:") AS supports_share_property
 FROM (
   SELECT
     DISTINCT REGEXP_REPLACE(page, "^http:", "https:") AS pwa_url,
@@ -66,13 +88,24 @@ LEFT JOIN (
     url,
     body AS sw_code
   FROM
-    `httparchive.response_bodies.*` ) AS bodies
+    `httparchive.response_bodies.*` ) AS sw_bodies
 ON
-  bodies.url = pathResolve(pwa_url,
+  sw_bodies.url = pathResolve(pwa_url,
     sw_url)
+LEFT JOIN (
+  SELECT
+    url,
+    body AS manifest_code
+  FROM
+    `httparchive.response_bodies.*` ) AS manifest_bodies
+ON
+  manifest_bodies.url = pathResolve(pwa_url,
+    manifest_url)
 WHERE
   sw_code IS NOT NULL
   AND sw_code != ""
+  AND manifest_code IS NOT NULL
+  AND manifest_code !=""
 ORDER BY
   rank ASC,
   pwa_url
