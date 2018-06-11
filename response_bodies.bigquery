@@ -25,7 +25,7 @@ SELECT
   REGEXP_CONTAINS(sw_code, r"\.onpaymentrequest\s*=|addEventListener\(\s*[\"']paymentrequest[\"']") AS paymentrequest_event,
   REGEXP_CONTAINS(sw_code, r"\.onmessage\s*=|addEventListener\(\s*[\"']message[\"']") AS message_event,
   REGEXP_CONTAINS(sw_code, r"\.onmessageerror\s*=|addEventListener\(\s*[\"']messageerror[\"']") AS messageerror_event,
-  REGEXP_CONTAINS(sw_code, r"workbox\\w*\\.") AS uses_workboxjs
+  REGEXP_CONTAINS(sw_code, r"(?i)workbox\w*\.") AS uses_workboxjs
 FROM (
   SELECT
     DISTINCT REGEXP_REPLACE(page, "^http:", "https:") AS pwa_url,
