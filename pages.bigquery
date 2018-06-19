@@ -1,15 +1,11 @@
 #standardSQL
-
 SELECT
   DISTINCT REGEXP_REPLACE(url, "^http:", "https:") AS pwa_url,
   IFNULL(rank,
-    1000000) AS rank,
-  "" AS sw_url,
-  "" AS manifest_url,
-  0.0 AS avg_score
+    1000000) AS rank
 FROM (
   SELECT
-    *
+    DISTINCT url
   FROM
     `httparchive.pages.*`
   WHERE
@@ -31,4 +27,4 @@ ON
   domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
 ORDER BY
   rank ASC,
-  pwa_url
+  pwa_url;

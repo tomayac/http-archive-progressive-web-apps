@@ -1,5 +1,4 @@
 #standardSQL
-
 SELECT
   DISTINCT url AS pwa_url,
   IFNULL(rank,
