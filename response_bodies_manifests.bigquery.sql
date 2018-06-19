@@ -2,6 +2,7 @@
   CREATE TABLE IF NOT EXISTS `progressive_web_apps.web_app_manifests` AS
 SELECT
   pwa_url,
+  rank,
   manifest_url,
   date,
   platform,
@@ -70,7 +71,8 @@ JOIN (
 ON
   manifest_bodies.url = manifest_url
 ORDER BY
+rank ASC,
   pwa_url,
-  date,
+  date DESC,
   platform,
   manifest_url;

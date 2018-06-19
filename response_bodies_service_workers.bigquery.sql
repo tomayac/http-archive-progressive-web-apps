@@ -2,6 +2,7 @@
   CREATE TABLE IF NOT EXISTS `progressive_web_apps.service_workers` AS
 SELECT
   pwa_url,
+  rank,
   sw_url,
   date,
   platform,
@@ -50,7 +51,8 @@ JOIN (
 ON
   sw_bodies.url = sw_url
 ORDER BY
+  rank ASC,
   pwa_url,
-  date,
+  date DESC,
   platform,
   sw_url;
