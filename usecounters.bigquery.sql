@@ -1,5 +1,5 @@
 #standardSQL
-  CREATE TABLE IF NOT EXISTS `progressive_web_apps.pages_pwas` AS
+  CREATE TABLE IF NOT EXISTS `progressive_web_apps.usecounters_pwas` AS
 SELECT
   DISTINCT REGEXP_REPLACE(url, "^http:", "https:") AS pwa_url,
   IFNULL(rank, 1000000) AS rank,
