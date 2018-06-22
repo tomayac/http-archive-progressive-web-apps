@@ -17,24 +17,16 @@ FROM (
     JSON_EXTRACT(payload, '$._blinkFeatureFirstUsed.Features.ServiceWorkerControlledPage') IS NOT NULL)
 LEFT JOIN (
   SELECT
-    DISTINCT domain,
+    domain,
     rank
   FROM
-    `httparchive.urls.*` AS urls
+    `httparchive.urls.20171221` AS urls
   WHERE
     rank IS NOT NULL
-    AND domain IS NOT NULL
-  ORDER BY
-    domain)
+    AND domain IS NOT NULL )
 ON
   domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
-GROUP BY
-  pwa_url,
-  date,
-  platform,
-  rank
 ORDER BY
   rank ASC,
-  pwa_url,
   date DESC,
-  platform;
+  pwa_url;

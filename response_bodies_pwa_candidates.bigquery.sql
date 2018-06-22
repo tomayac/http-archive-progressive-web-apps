@@ -16,15 +16,14 @@ FROM
   `httparchive.response_bodies.*`
 LEFT JOIN (
   SELECT
-    DISTINCT domain,
+    domain,
     rank
   FROM
-    `httparchive.urls.*` AS urls
+    # Hard-coded due to https://github.com/HTTPArchive/bigquery/issues/42
+    `httparchive.urls.20171221` AS urls
   WHERE
     rank IS NOT NULL
-    AND domain IS NOT NULL
-  ORDER BY
-    domain)
+    AND domain IS NOT NULL )
 ON
   domain = REGEXP_REPLACE(REGEXP_REPLACE(page, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
 WHERE
