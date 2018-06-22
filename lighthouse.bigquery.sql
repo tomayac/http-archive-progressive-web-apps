@@ -31,15 +31,14 @@ FROM ( (
       AND JSON_EXTRACT(report, "$.reportCategories[1].name") = '"Progressive Web App"' ))
 LEFT JOIN (
   SELECT
-    DISTINCT domain,
+    domain,
     rank
   FROM
-    `httparchive.urls.*`
+    # Hard-coded due to https://github.com/HTTPArchive/bigquery/issues/42
+    `httparchive.urls.20171221`
   WHERE
     rank IS NOT NULL
-    AND domain IS NOT NULL
-  ORDER BY
-    domain) AS urls
+    AND domain IS NOT NULL ) AS urls
 ON
   urls.domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
 WHERE
