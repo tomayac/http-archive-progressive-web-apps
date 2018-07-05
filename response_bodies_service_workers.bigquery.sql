@@ -1,35 +1,24 @@
 #standardSQL
-  CREATE TABLE IF NOT EXISTS `progressive_web_apps.service_workers` AS
+CREATE TABLE IF NOT EXISTS
+  `progressive_web_apps.service_workers` AS
 SELECT
   pwa_url,
   rank,
   sw_url,
   date,
   platform,
-  REGEXP_CONTAINS(sw_code,
-    r"\.oninstall\s*=|addEventListener\(\s*[\"']install[\"']") AS install_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onactivate\s*=|addEventListener\(\s*[\"']activate[\"']") AS activate_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onfetch\s*=|addEventListener\(\s*[\"']fetch[\"']") AS fetch_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onpush\s*=|addEventListener\(\s*[\"']push[\"']") AS push_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onnotificationclick\s*=|addEventListener\(\s*[\"']notificationclick[\"']") AS notificationclick_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onnotificationclose\s*=|addEventListener\(\s*[\"']notificationclose[\"']") AS notificationclose_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onsync\s*=|addEventListener\(\s*[\"']sync[\"']") AS sync_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.oncanmakepayment\s*=|addEventListener\(\s*[\"']canmakepayment[\"']") AS canmakepayment_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onpaymentrequest\s*=|addEventListener\(\s*[\"']paymentrequest[\"']") AS paymentrequest_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onmessage\s*=|addEventListener\(\s*[\"']message[\"']") AS message_event,
-  REGEXP_CONTAINS(sw_code,
-    r"\.onmessageerror\s*=|addEventListener\(\s*[\"']messageerror[\"']") AS messageerror_event,
-  REGEXP_CONTAINS(sw_code,
-    r"(?i)workbox\w*\.") AS uses_workboxjs
+  REGEXP_CONTAINS(sw_code, r"\.oninstall\s*=|addEventListener\(\s*[\"']install[\"']") AS install_event,
+  REGEXP_CONTAINS(sw_code, r"\.onactivate\s*=|addEventListener\(\s*[\"']activate[\"']") AS activate_event,
+  REGEXP_CONTAINS(sw_code, r"\.onfetch\s*=|addEventListener\(\s*[\"']fetch[\"']") AS fetch_event,
+  REGEXP_CONTAINS(sw_code, r"\.onpush\s*=|addEventListener\(\s*[\"']push[\"']") AS push_event,
+  REGEXP_CONTAINS(sw_code, r"\.onnotificationclick\s*=|addEventListener\(\s*[\"']notificationclick[\"']") AS notificationclick_event,
+  REGEXP_CONTAINS(sw_code, r"\.onnotificationclose\s*=|addEventListener\(\s*[\"']notificationclose[\"']") AS notificationclose_event,
+  REGEXP_CONTAINS(sw_code, r"\.onsync\s*=|addEventListener\(\s*[\"']sync[\"']") AS sync_event,
+  REGEXP_CONTAINS(sw_code, r"\.oncanmakepayment\s*=|addEventListener\(\s*[\"']canmakepayment[\"']") AS canmakepayment_event,
+  REGEXP_CONTAINS(sw_code, r"\.onpaymentrequest\s*=|addEventListener\(\s*[\"']paymentrequest[\"']") AS paymentrequest_event,
+  REGEXP_CONTAINS(sw_code, r"\.onmessage\s*=|addEventListener\(\s*[\"']message[\"']") AS message_event,
+  REGEXP_CONTAINS(sw_code, r"\.onmessageerror\s*=|addEventListener\(\s*[\"']messageerror[\"']") AS messageerror_event,
+  REGEXP_CONTAINS(sw_code, r"new Workbox|new workbox|workbox\.precaching\.|workbox\.strategies\.") AS uses_workboxjs
 FROM
   `progressive_web_apps.pwa_candidates`
 JOIN (

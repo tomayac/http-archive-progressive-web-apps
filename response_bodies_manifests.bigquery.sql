@@ -71,7 +71,7 @@ JOIN (
 ON
   manifest_bodies.url = manifest_url
 ORDER BY
-rank ASC,
+  rank ASC,
   pwa_url,
   date DESC,
   platform,

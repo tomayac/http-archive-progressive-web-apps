@@ -1,8 +1,10 @@
 #standardSQL
-  CREATE TABLE IF NOT EXISTS `progressive_web_apps.usecounters_pwas` AS
+CREATE TABLE IF NOT EXISTS
+  `progressive_web_apps.usecounters_pwas` AS
 SELECT
   DISTINCT REGEXP_REPLACE(url, "^http:", "https:") AS pwa_url,
-  IFNULL(rank, 1000000) AS rank,
+  IFNULL(rank,
+    1000000) AS rank,
   date,
   platform
 FROM (
@@ -14,18 +16,20 @@ FROM (
     `httparchive.pages.*`
   WHERE
     # From https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_feature.mojom
-    JSON_EXTRACT(payload, '$._blinkFeatureFirstUsed.Features.ServiceWorkerControlledPage') IS NOT NULL)
+    JSON_EXTRACT(payload,
+      '$._blinkFeatureFirstUsed.Features.ServiceWorkerControlledPage') IS NOT NULL)
 LEFT JOIN (
   SELECT
-    domain,
-    rank
+    Alexa_domain AS domain,
+    Alexa_rank AS rank
   FROM
-    `httparchive.urls.20171221` AS urls
+    # Hard-coded due to https://github.com/HTTPArchive/bigquery/issues/42
+    `httparchive.urls.20170315` AS urls
   WHERE
-    rank IS NOT NULL
-    AND domain IS NOT NULL )
+    Alexa_rank IS NOT NULL
+    AND Alexa_domain IS NOT NULL )
 ON
-  domain = REGEXP_REPLACE(REGEXP_REPLACE(url, "https?:\\/\\/(?:www\\.)?", ""), "\\/$", "")
+  domain = NET.REG_DOMAIN(url)
 ORDER BY
   rank ASC,
   date DESC,
