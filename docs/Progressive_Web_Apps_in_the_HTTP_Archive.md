@@ -26,7 +26,7 @@ The [HTTP Archive](https://httparchive.org/) tracks how the web is built and pro
 
 In the following, we will discuss all three approaches and their particular pros and cons, as well as present the extractable data and ideas for further research. All [queries are also available on GitHub](https://github.com/tomayac/http-archive-progressive-web-apps) and are released under the terms of the Apache 2.0 license.
 
-**⚠️ Warning:** while BigQuery grants everyone a certain amount of [free quota per month](https://cloud.google.com/bigquery/pricing#free), on-demand pricing kicks in once the free quota is consumed. Currently, this is [$5 per ](https://cloud.google.com/bigquery/pricing#on_demand_pricing)[terabyte](https://cloud.google.com/bigquery/pricing#on_demand_pricing). Some of the shown queries process 70+(!) terabytes! You can see the amount of data that will be processed by clicking on the *Validator* icon:
+**⚠️ Warning:** while BigQuery grants everyone a certain amount of [free quota per month](https://cloud.google.com/bigquery/pricing#free), on-demand pricing kicks in once the free quota is consumed. Currently, this is [$5 per terabyte](https://cloud.google.com/bigquery/pricing#on_demand_pricing). Some of the shown queries process 70+(!) terabytes! You can see the amount of data that will be processed by clicking on the *Validator* icon:
 
 ![image alt text](image_0.png)
 
