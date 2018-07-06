@@ -217,7 +217,7 @@ The downside of this approach is that we are trying to parse HTML with regular e
 
 ### Pros
 
-Despite all challenges, as the service worker JavaScript files and the Web App Manifest JSON files are subresources of the page and therefore stored in the ```httparchive.response_bodies.*``` tables, we can still bravely attempt to examine their contents and try to gain an in-depth understanding of the PWAs’ capabilities. By checking the service worker JavaScript code for the events the service worker listens to, we can see if a PWA—at least in theory—deals with Web Push notifications, handles fetches, etc., and by looking at the Web App Manifest JSON document, we can see if the PWA specifies a Start URL and provides a name, and so on.
+Despite all challenges, as the service worker JavaScript files and the Web App Manifest JSON files are subresources of the page and therefore stored in the ```httparchive.response_bodies.*``` tables, we can still bravely attempt to examine their contents and try to gain an in-depth understanding of the PWAs’ capabilities. By checking the service worker JavaScript code for the events the service worker listens to, we can see if a PWA—at least in theory—deals with Web Push notifications, handles fetches, *etc.*, and by looking at the Web App Manifest JSON document, we can see if the PWA specifies a start URL, provides a name, and so on.
 
 ### Query and Results
 
@@ -270,7 +270,7 @@ ORDER BY
 
 #### Web App Manifests Analysis
 
-Based on this helper table, we can then run the analysis of the Web App Manifests. We check for the existence of properties defined in the [Web App Manifest dictionary](https://www.w3.org/TR/appmanifest/#webappmanifest-dictionary) combined with non-standard, but well-known properties like ```"gcm_sender_id"``` from the deprecated [Google Cloud Messaging](https://developers.google.com/cloud-messaging/) or ```"share_target"``` from the currently [in flux Web Share Target API](https://wicg.github.io/web-share-target/#extension-to-the-web-app-manifest). Turns out, not many manifests are in the archive; from 2,823 candidate manifest URLs in the helper table we actually only find [30 unique Web App Manifests](https://docs.google.com/spreadsheets/d/1VE9hoj7Ag7E3kOG4BKc8NKISg1w0BZVQkGdCq4MJ6hw/edit?usp=sharing) and thus PWAs in the response bodies, but these at least archived in several versions.
+Based on this helper table, we can then run the analysis of the Web App Manifests. We check for the existence of properties defined in the [```WebAppManifest``` dictionary](https://www.w3.org/TR/appmanifest/#webappmanifest-dictionary) combined with non-standard, but well-known properties like ```"gcm_sender_id"``` from the deprecated [Google Cloud Messaging](https://developers.google.com/cloud-messaging/) or ```"share_target"``` from the currently [in flux Web Share Target API](https://wicg.github.io/web-share-target/#extension-to-the-web-app-manifest). Turns out, not many manifests are in the archive; from 2,823 candidate manifest URLs in the helper table we actually only find [30 unique Web App Manifests](https://docs.google.com/spreadsheets/d/1VE9hoj7Ag7E3kOG4BKc8NKISg1w0BZVQkGdCq4MJ6hw/edit?usp=sharing) and thus PWAs in the response bodies, but these at least archived in several versions.
 
 ```sql
 #standardSQL
