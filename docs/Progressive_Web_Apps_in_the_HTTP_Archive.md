@@ -1,10 +1,7 @@
 # Progressive Web Apps in the HTTP Archive
 
-Thomas Steiner
-
-Google Hamburg, Germany
-
-[tomac@google.com](mailto:tomac@google.com), [@tomayac](https://twitter.com/tomayac)
+**Thomas Steiner**, Google Hamburg, Germany
+📧 [tomac@google.com](mailto:tomac@google.com) • 🐦 [@tomayac](https://twitter.com/tomayac) • 😸 [tomayac](https://github.com/tomayac)
 
 ## *Abstract*
 
