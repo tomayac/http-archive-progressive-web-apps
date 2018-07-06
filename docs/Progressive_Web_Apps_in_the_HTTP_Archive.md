@@ -370,7 +370,7 @@ WHERE
 
 #### Service Workers Analysis
 
-Similarly to the analysis of Web App Manifests, the analysis of the various [ServiceWorkerGlobalScope](https://www.w3.org/TR/service-workers-1/#execution-context-events)[ events ](https://www.w3.org/TR/service-workers-1/#execution-context-events)is based on regular expressions. Events can be listened to using two JavaScript syntaxes: *(i)* the property syntax (*e.g.*, ```self.oninstall = […]``` or *(ii)* the event listener syntax (*e.g.*, ```self.addEventListener('install', […])```). As an additional data point, we extract potential uses of the increasingly popular library [Workbox](https://developers.google.com/web/tools/workbox/) by looking for telling traces of various Workbox versions in the code. Running this query we obtain [1,151 unique service workers](https://docs.google.com/spreadsheets/d/1rrSh3tXje9WnySfX8oRafY7Aduunv6X0rq_jmcBicIM/edit?usp=sharing) and thus PWAs.
+Similarly to the analysis of Web App Manifests, the analysis of the various [```ServiceWorkerGlobalScope``` events ](https://www.w3.org/TR/service-workers-1/#execution-context-events)is based on regular expressions. Events can be listened to using two JavaScript syntaxes: *(i)* the property syntax (*e.g.*, ```self.oninstall = […]``` or *(ii)* the event listener syntax (*e.g.*, ```self.addEventListener('install', […])```). As an additional data point, we extract potential uses of the increasingly popular library [Workbox](https://developers.google.com/web/tools/workbox/) by looking for telling traces of various Workbox versions in the code. Running this query we obtain [1,151 unique service workers](https://docs.google.com/spreadsheets/d/1rrSh3tXje9WnySfX8oRafY7Aduunv6X0rq_jmcBicIM/edit?usp=sharing) and thus PWAs.
 
 ```sql
 #standardSQL
