@@ -21,24 +21,24 @@ Our first idea was to check some of the curated PWA catalogues, for example, [PW
 
 ## The HTTP Archive to the Rescue
 
-The [HTTP Archive](https://httparchive.org/) tracks how the web is built and provides historical data to quantitatively illustrate how the web is evolving. The archive’s crawlers process [500,000](https://httparchive.org/faq#how-does-the-http-archive-decide-which-urls-to-test)[ URLs](https://httparchive.org/faq#how-does-the-http-archive-decide-which-urls-to-test) for both desktop and mobile twice a month. These URLs come from the most popular 500,000 sites in the [Alexa Top 1,000,000](http://www.alexa.com/topsites) list and are mostly homepages that may or may not be representative for the rest of the site. The data in the HTTP Archive can be [queried through BigQuery](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/docs/bigquery-gettingstarted.md), where multiple tables are available in the httparchive project. As these tables tend to get fairly big, they are partitioned, but multiple associated tables can be queried using the [wildcard symbol '*'](https://cloud.google.com/bigquery/docs/querying-wildcard-tables). For our purposes, three families of tables are relevant, leading to three different approaches:
-* httparchive.lighthouse.*, which contains data about [Lighthouse](https://developers.google.com/web/tools/lighthouse/) runs.
-* httparchive.pages.*, which contain the JSON-encoded parent documents’ [HAR](https://w3c.github.io/web-performance/specs/HAR/Overview.html) data.
-* httparchive.response_bodies.*, which contains the raw response bodies of all resources and sub-resources of all sites in the archive.
+The [HTTP Archive](https://httparchive.org/) tracks how the web is built and provides historical data to quantitatively illustrate how the web is evolving. The archive’s crawlers process [500,000](https://httparchive.org/faq#how-does-the-http-archive-decide-which-urls-to-test)[ URLs](https://httparchive.org/faq#how-does-the-http-archive-decide-which-urls-to-test) for both desktop and mobile twice a month. These URLs come from the most popular 500,000 sites in the [Alexa Top 1,000,000](http://www.alexa.com/topsites) list and are mostly homepages that may or may not be representative for the rest of the site. The data in the HTTP Archive can be [queried through BigQuery](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/docs/bigquery-gettingstarted.md), where multiple tables are available in the ```httparchive``` project. As these tables tend to get fairly big, they are partitioned, but multiple associated tables can be queried using the [wildcard symbol '*'](https://cloud.google.com/bigquery/docs/querying-wildcard-tables). For our purposes, three families of tables are relevant, leading to three different approaches:
+* ```httparchive.lighthouse.*```, which contains data about [Lighthouse](https://developers.google.com/web/tools/lighthouse/) runs.
+* ```httparchive.pages.*```, which contain the JSON-encoded parent documents’ [HAR](https://w3c.github.io/web-performance/specs/HAR/Overview.html) data.
+* ```httparchive.response_bodies.*```, which contains the raw response bodies of all resources and sub-resources of all sites in the archive.
 In the following, we will discuss all three approaches and their particular pros and cons, as well as present the extractable data and ideas for further research. All [queries are also available on GitHub](https://github.com/tomayac/http-archive-progressive-web-apps) and are released under the terms of the Apache 2.0 license.
 
 **⚠️ Warning:** while BigQuery grants everyone a certain amount of [free quota per month](https://cloud.google.com/bigquery/pricing#free), on-demand pricing kicks in once the free quota is consumed. Currently, this is [$5 per ](https://cloud.google.com/bigquery/pricing#on_demand_pricing)[terabyte](https://cloud.google.com/bigquery/pricing#on_demand_pricing). Some of the shown queries process 70+(!) terabytes! You can see the amount of data that will be processed by clicking on the *Validator* icon:
 ![image alt text](image_0.png)
 
-## Approach 1: httparchive.lighthouse.* Tables
+## Approach 1: ```httparchive.lighthouse.*``` Tables
 
 ### Description
 
-[Lighthouse](https://developers.google.com/web/tools/lighthouse/) is an automated open-source tool for improving the quality of web pages. One can run it against any web page, public or requiring authentication. It has audits for *Performance*, *Accessibility*, *Progressive Web App*, and more. The httparchive.lighthouse.* tables contain JSON dumps ([example](https://gist.github.com/tomayac/05fed2d4bfa94fe066c705510a3c2103)) of past reports that can be extracted via BigQuery.
+[Lighthouse](https://developers.google.com/web/tools/lighthouse/) is an automated open-source tool for improving the quality of web pages. One can run it against any web page, public or requiring authentication. It has audits for *Performance*, *Accessibility*, *Progressive Web App*, and more. The ```httparchive.lighthouse.*``` tables contain JSON dumps ([example](https://gist.github.com/tomayac/05fed2d4bfa94fe066c705510a3c2103)) of past reports that can be extracted via BigQuery.
 
 ### Cons
 
-The biggest con is that obviously the tables only contain data of web pages that were ever run through the tool, so there is a blind spot. Additionally, Lighthouse only processes mobile pages, so there are no results for desktop. One pitfall when working with these tables is that in a past version of Lighthouse *Progressive Web App* was the first category that was shown in the tool, however the [order was flipped](https://github.com/GoogleChrome/lighthouse/issues/3599) in the current version so that now *Performance* is first. In the query we need to take this corner case into account.
+The biggest con is that obviously the tables only contain data of web pages that were ever run through the tool, so there is a blind spot. Additionally, while latest versions of Lighthouse process mobile and desktop pages, the currently used Lighthouse only processes mobile pages, so there are no results for desktop. One pitfall when working with these tables is that in a past version of Lighthouse *Progressive Web App* was the first category that was shown in the tool, however the [order was flipped](https://github.com/GoogleChrome/lighthouse/issues/3599) in the current version so that now *Performance* is first. In the query we need to take this corner case into account.
 
 ### Pros
 
@@ -109,7 +109,7 @@ ORDER BY
 
 ### Research Ideas
 
-An interesting analysis we can run based on this data is the development of average Lighthouse PWA scores over time and the number of PWAs.
+An interesting analysis we can run based on this data is the development of average Lighthouse PWA scores over time and the number of PWAs (note that the presented naive approach does not take the in relation also growing HTTP Archive into account, but purely counts absolute numbers).
 
 ```sql
 #standardSQL
@@ -129,15 +129,15 @@ ORDER BY
 
 ![image alt text](image_2.png)
 
-## Approach 2: httparchive.pages.* Tables
+## Approach 2: ```httparchive.pages.*``` Tables
 
 ### Description
 
-Another straightforward way for estimating the amount of PWAs (however completely neglecting Web App Manifests) is to look for so-called [use counters](https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_feature.mojom) in the httparchive.pages.* tables. Particularly interesting is the ServiceWorkerControlledPage use counter, which, [according to Chrome engineer Matt Falkenhagen](https://groups.google.com/a/chromium.org/d/msg/blink-api-owners-discuss/uxwEuxCRfGA/_1VdL4_EBAAJ), *"is **counted** whenever a page is controlled by a service worker, which typically happens only on **subsequent loads**."*
+Another straightforward way for estimating the amount of PWAs (however completely neglecting Web App Manifests) is to look for so-called [use counters](https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_feature.mojom) in the ```httparchive.pages.*``` tables. Particularly interesting is the ```ServiceWorkerControlledPage``` use counter, which, [according to Chrome engineer Matt Falkenhagen](https://groups.google.com/a/chromium.org/d/msg/blink-api-owners-discuss/uxwEuxCRfGA/_1VdL4_EBAAJ), *"is **counted** whenever a page is controlled by a service worker, which typically happens only on **subsequent loads**."*
 
 ### Cons
 
-No qualitative attributes other than the absolute fact that a service worker controlled the loading of the page can be extracted. More importantly, as the counter is typically triggered on subsequent loads only (and not on the first load that the crawler sees), this method undercounts and only contains sites that claim their clients (self.clients.claim()) on the first load.
+No qualitative attributes other than the absolute fact that a service worker controlled the loading of the page can be extracted. More importantly, as the counter is typically triggered on subsequent loads only (and not on the first load that the crawler sees), this method undercounts and only contains sites that claim their clients (```self.clients.claim()```) on the first load.
 
 ### Pros
 
@@ -205,11 +205,11 @@ ORDER BY
 
 ![image alt text](image_3.png)
 
-## Approach 3: httparchive.response_body.* Tables
+## Approach 3: ```httparchive.response_body.*``` Tables
 
 ### Description
 
-A third less obvious way to answer our research questions is to look at actual response bodies. The httparchive.response_bodies.* tables contain raw data of all resources and sub-resources of all sites in the archive, so we can use fulltext search to find patterns that are indicators for the presence of PWA features like, for instance, the existence of variations of the string "```navigator.serviceWorker.register("```" that provide a clue that the page might be registering a service worker on the one hand, and variations of “```<link rel="manifest```” that point to a potential Web App Manifest on the other hand.
+A third less obvious way to answer our research questions is to look at actual response bodies. The ```httparchive.response_bodies.*``` tables contain raw data of all resources and sub-resources of all sites in the archive, so we can use fulltext search to find patterns that are indicators for the presence of PWA features like, for instance, the existence of variations of the string ```navigator.serviceWorker.register("``` that provide a clue that the page might be registering a service worker on the one hand, and variations of ```<link rel="manifest"``` that point to a potential Web App Manifest on the other hand.
 
 ### Cons
 
@@ -217,11 +217,11 @@ The downside of this approach is that we are trying to parse HTML with regular e
 
 ### Pros
 
-Despite all challenges, as the service worker JavaScript files and the Web App Manifest JSON files are subresources of the page and therefore stored in the httparchive.response_bodies.* tables, we can still bravely attempt to examine their contents and try to gain an in-depth understanding of the PWAs’ capabilities. By checking the service worker JavaScript code for the events the service worker listens to, we can see if a PWA—at least in theory—deals with Web Push notifications, handles fetches, etc., and by looking at the Web App Manifest JSON document, we can see if the PWA specifies a Start URL and provides a name, and so on.
+Despite all challenges, as the service worker JavaScript files and the Web App Manifest JSON files are subresources of the page and therefore stored in the ```httparchive.response_bodies.*``` tables, we can still bravely attempt to examine their contents and try to gain an in-depth understanding of the PWAs’ capabilities. By checking the service worker JavaScript code for the events the service worker listens to, we can see if a PWA—at least in theory—deals with Web Push notifications, handles fetches, etc., and by looking at the Web App Manifest JSON document, we can see if the PWA specifies a Start URL and provides a name, and so on.
 
 ### Query and Results
 
-We have split the analysis of service workers and Web App Manifests, and use a common helper table to extract PWA candidates from the large response body tables. As references to service worker script files and Web App Manifest JSON files may be relative or absolute, we need a [User-Defined Function](https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions) to resolve paths like ../../manifest.json relative to their base URL. Our function is a hacky simplification based on [path.resolve([...paths])](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_paths) in Node.js and not very elegant. We deliberately ignore references that would require executing JavaScript, for example, URLs like window.location.href + 'sw.js', so our regular expressions are a bit involved to make sure we exclude these cases.
+We have split the analysis of service workers and Web App Manifests, and use a common helper table to extract PWA candidates from the large response body tables. As references to service worker script files and Web App Manifest JSON files may be relative or absolute, we need a [User-Defined Function](https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions) to resolve paths like ```../../manifest.json``` relative to their base URL. Our function is a hacky simplification based on [path.resolve([...paths])](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_paths) in Node.js and not very elegant. We deliberately ignore references that would require executing JavaScript, for example, URLs like ```window.location.href + 'sw.js'```, so our regular expressions are a bit involved to make sure we exclude these cases.
 
 #### PWA Candidates Helper Table
 
@@ -270,7 +270,7 @@ ORDER BY
 
 #### Web App Manifests Analysis
 
-Based on this helper table, we can then run the analysis of the Web App Manifests. We check for the existence of properties defined in the [Web App Manifest dictionary](https://www.w3.org/TR/appmanifest/#webappmanifest-dictionary) combined with non-standard, but well-known properties like "gcm_sender_id" from the deprecated [Google Cloud Messaging](https://developers.google.com/cloud-messaging/) or "share_target" from the currently [in flux Web Share Target API](https://wicg.github.io/web-share-target/#extension-to-the-web-app-manifest). Turns out, not many manifests are in the archive; from 2,823 candidate manifest URLs in the helper table we actually only find [30 unique Web App Manifests](https://docs.google.com/spreadsheets/d/1VE9hoj7Ag7E3kOG4BKc8NKISg1w0BZVQkGdCq4MJ6hw/edit?usp=sharing) and thus PWAs in the response bodies, but these at least archived in several versions.
+Based on this helper table, we can then run the analysis of the Web App Manifests. We check for the existence of properties defined in the [Web App Manifest dictionary](https://www.w3.org/TR/appmanifest/#webappmanifest-dictionary) combined with non-standard, but well-known properties like ```"gcm_sender_id"``` from the deprecated [Google Cloud Messaging](https://developers.google.com/cloud-messaging/) or ```"share_target"``` from the currently [in flux Web Share Target API](https://wicg.github.io/web-share-target/#extension-to-the-web-app-manifest). Turns out, not many manifests are in the archive; from 2,823 candidate manifest URLs in the helper table we actually only find [30 unique Web App Manifests](https://docs.google.com/spreadsheets/d/1VE9hoj7Ag7E3kOG4BKc8NKISg1w0BZVQkGdCq4MJ6hw/edit?usp=sharing) and thus PWAs in the response bodies, but these at least archived in several versions.
 
 ```sql
 #standardSQL
@@ -370,7 +370,7 @@ WHERE
 
 #### Service Workers Analysis
 
-Similarly to the analysis of Web App Manifests, the analysis of the various [ServiceWorkerGlobalScope](https://www.w3.org/TR/service-workers-1/#execution-context-events)[ events ](https://www.w3.org/TR/service-workers-1/#execution-context-events)is based on regular expressions. Events can be listened to using two JavaScript syntaxes: *(i)* the property syntax (*e.g.*, self.oninstall = […] or *(ii)* the event listener syntax (*e.g.*, self.addEventListener('install', […])). As an additional data point, we extract potential uses of the increasingly popular library [Workbox](https://developers.google.com/web/tools/workbox/) by looking for telling traces of various Workbox versions in the code. Running this query we obtain [1,151 unique service workers](https://docs.google.com/spreadsheets/d/1rrSh3tXje9WnySfX8oRafY7Aduunv6X0rq_jmcBicIM/edit?usp=sharing) and thus PWAs.
+Similarly to the analysis of Web App Manifests, the analysis of the various [ServiceWorkerGlobalScope](https://www.w3.org/TR/service-workers-1/#execution-context-events)[ events ](https://www.w3.org/TR/service-workers-1/#execution-context-events)is based on regular expressions. Events can be listened to using two JavaScript syntaxes: *(i)* the property syntax (*e.g.*, ```self.oninstall = […]``` or *(ii)* the event listener syntax (*e.g.*, ```self.addEventListener('install', […])```). As an additional data point, we extract potential uses of the increasingly popular library [Workbox](https://developers.google.com/web/tools/workbox/) by looking for telling traces of various Workbox versions in the code. Running this query we obtain [1,151 unique service workers](https://docs.google.com/spreadsheets/d/1rrSh3tXje9WnySfX8oRafY7Aduunv6X0rq_jmcBicIM/edit?usp=sharing) and thus PWAs.
 
 ```sql
 #standardSQL
@@ -471,7 +471,7 @@ ORDER BY
 
 ![image alt text](image_5.png)
 
-A final idea is to examine service worker events over time and see if there are interesting developments. Something that stands out in the analysis is how increasingly the fetch event is being listened to as well as the message event. Both are an indicator for more complex offline handling scenarios.
+A final idea is to examine service worker events over time and see if there are interesting developments. Something that stands out in the analysis is how increasingly the ```fetch``` event is being listened to as well as the ```message``` event. Both are an indicator for more complex offline handling scenarios.
 
 ```sql
 #standardSQL
