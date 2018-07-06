@@ -38,7 +38,7 @@ In the following, we will discuss all three approaches and their particular pros
 
 ### Cons
 
-The biggest con is that obviously the tables only contain data of web pages that were ever run through the tool, so there is a blind spot. Additionally, while latest versions of Lighthouse process mobile and desktop pages, the currently used Lighthouse only processes mobile pages, so there are no results for desktop. One pitfall when working with these tables is that in a past version of Lighthouse *Progressive Web App* was the first category that was shown in the tool, however the [order was flipped](https://github.com/GoogleChrome/lighthouse/issues/3599) in the current version so that now *Performance* is first. In the query we need to take this corner case into account.
+The biggest con is that obviously the tables only contain data of web pages that were ever run through the tool, so there is a blind spot. Additionally, while latest versions of Lighthouse process mobile *and* desktop pages, the currently used Lighthouse only processes mobile pages, so there are no results for desktop. One pitfall when working with these tables is that in a past version of Lighthouse *Progressive Web App* was the first category that was shown in the tool, however the [order was flipped](https://github.com/GoogleChrome/lighthouse/issues/3599) in the current version so that now *Performance* is first. In the query we need to take this corner case into account.
 
 ### Pros
 
@@ -133,7 +133,7 @@ ORDER BY
 
 ### Description
 
-Another straightforward way for estimating the amount of PWAs (however completely neglecting Web App Manifests) is to look for so-called [use counters](https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_feature.mojom) in the ```httparchive.pages.*``` tables. Particularly interesting is the ```ServiceWorkerControlledPage``` use counter, which, [according to Chrome engineer Matt Falkenhagen](https://groups.google.com/a/chromium.org/d/msg/blink-api-owners-discuss/uxwEuxCRfGA/_1VdL4_EBAAJ), *"is **counted** whenever a page is controlled by a service worker, which typically happens only on **subsequent loads**."*
+Another straightforward way for estimating the amount of PWAs (however completely neglecting Web App Manifests) is to look for so-called [use counters](https://cs.chromium.org/chromium/src/third_party/blink/public/platform/web_feature.mojom) in the ```httparchive.pages.*``` tables. Particularly interesting is the ```ServiceWorkerControlledPage``` use counter, which, [according to Chrome engineer Matt Falkenhagen](https://groups.google.com/a/chromium.org/d/msg/blink-api-owners-discuss/uxwEuxCRfGA/_1VdL4_EBAAJ), *“is counted whenever a page is controlled by a service worker, which typically happens only on subsequent loads.”*
 
 ### Cons
 
