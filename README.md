@@ -4,6 +4,8 @@
 
 📧 [tomac@google.com](mailto:tomac@google.com) • 🐦 [@tomayac](https://twitter.com/tomayac) • 😸 [tomayac](https://github.com/tomayac)
 
+(Published at https://medium.com/dev-channel/progressive-web-apps-in-the-http-archive-614d4bcf81fe.)
+
 ## *Abstract*
 
 *In this document, we present three different approaches and discuss their particular pros and cons for extracting data about Progressive Web Apps (PWA) from the HTTP Archive. Approach 1 is based on data that is tracked in the context of runs of the Lighthouse tool, Approach 2 is based on use counters in the Chrome browser to record per-page anonymous aggregated metrics on feature usage, and Approach 3 is based on parsing the source code of web pages for traces of service worker registrations and Web App Manifest references. We find that by all three approaches the popularity of PWAs increases roughly linearly over time and provide further research ideas based on the extracted data, whose underlying queries we share publicly.*
